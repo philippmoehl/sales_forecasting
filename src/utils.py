@@ -1,9 +1,15 @@
 import datetime as dt
+from pathlib import Path
+import pickle
 import requests
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+
+BASE_PATH = Path.cwd().parent
+MODEL_PATH = BASE_PATH / "models"
 
 
 def get_gdp_per_capita(country, year):
@@ -70,3 +76,21 @@ def expand_time(df):
     date_columns = ['date', 'day', 'week', 'month', 'year', 'time_no']
 
     return df, date_columns
+
+
+def save_model(model, name="model.pkl"):
+    """
+    Save a sklearn model with pickle.
+    """
+    with open((MODEL_PATH / name).as_posix(),'wb') as f:
+        pickle.dump(model, f)
+
+
+def load_model(name):
+    """
+    Load a sklean model with pickle.
+    """
+    with open((MODEL_PATH / name).as_posix(), 'rb') as f:
+        model = pickle.load(f)
+
+    return model
