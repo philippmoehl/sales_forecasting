@@ -1,7 +1,7 @@
 import datetime as dt
 import requests
 
-import holidays
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -16,6 +16,20 @@ def get_gdp_per_capita(country, year):
         alpha3[country], year)
     response = requests.get(url).json()
     return response[1][0]['value']
+
+
+def gdp_countries(countries):
+    gdp = []
+    for country in countries:
+        row = []
+        for year in range(2017, 2023):
+            row.append(get_gdp_per_capita(country, year))
+        gdp.append(row)
+        
+    gdp = np.array(gdp)
+    gdp /= np.sum(gdp) #to renomralize the data
+
+    return gdp
 
 
 def plot_data(axs, df, column, adj_column=None):
@@ -56,60 +70,3 @@ def expand_time(df):
     date_columns = ['date', 'day', 'week', 'month', 'year', 'time_no']
 
     return df, date_columns
-
-
-def create_holiday(years, countries):
-    """
-    Utilize the holiday package to create holiday based information.
-    """
-    dfs = []
-    # Generate holidays for each country and year
-    for year in years:
-        for country in countries:
-            for date, holiday_name in sorted(holidays.CountryHoliday(country, years=year).items()):
-                
-                df_0 = pd.DataFrame({"date": [date], "country": [
-                                country]})
-                dfs.append(df_0)
-
-    # Concatenate all the DataFrames
-    df_holidays = pd.concat(dfs, ignore_index=True)
-
-    # Convert 'date' column to datetime
-    df_holidays['date'] = pd.to_datetime(df_holidays['date'])
-    df_holidays['tmp'] = 1
-
-    # remove certain holidays since the data doesn't have "holiday upturn" on these holidays
-    df_holidays = df_holidays[~((df_holidays['date'].dt.month.isin([2,4,5,8,10])) & (df_holidays['country'] == 'Canada'))]
-    # remove New Year and Christmas Holiday because I will handle them seperately
-    for country in ['Argentina', 'Canada', 'Estonia', 'Spain']:
-        for year in years:
-            df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime(
-                f'{year}-01-01')) & (df_holidays['country'] == country))]
-    df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime(
-        '2017-01-02')) & (df_holidays['country'] == 'Spain'))]
-
-    for country in ['Argentina', 'Canada', 'Estonia', 'Spain']:
-        for year in years:
-            df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime(
-                f'{year}-12-25')) & (df_holidays['country'] == country))]
-    df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime(
-        '2022-12-26')) & (df_holidays['country'] == 'Spain'))]
-
-    # Canada and Estonia has additional holiday on 26th following Christmas. I will handle them separately
-    for country in ['Canada', 'Estonia']:
-        for year in years:
-            df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime(
-                f'{year}-12-26')) & (df_holidays['country'] == country))]
-
-    #Canada has additional holiday on 27, 28. I remove them and it increases cross validation
-    df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime('2020-12-28')) & (df_holidays['country'] == 'Canada'))]
-    df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime('2021-12-27')) & (df_holidays['country'] == 'Canada'))]
-    df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime('2021-12-28')) & (df_holidays['country'] == 'Canada'))]
-    df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime('2022-12-27')) & (df_holidays['country'] == 'Canada'))]
-
-    #it seems that Japan doesn't celebrate on this day. I remove it and it increases cross validation
-    df_holidays = df_holidays[~((df_holidays['date'] == pd.to_datetime(
-                f'2018-12-24')) & (df_holidays['country'] == 'Japan'))]
-    
-    return df_holidays
