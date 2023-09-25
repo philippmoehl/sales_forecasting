@@ -26,7 +26,7 @@ if df_display:
     num_rows = sidebar.slider(
         "Select Number of rows",
         min_value=5,
-        max_value=100,
+        max_value=1000,
         value=5,
         step=5,
         
