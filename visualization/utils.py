@@ -6,18 +6,17 @@ import streamlit as st
 
 BASE_PATH = Path.cwd()
 DATA_PATH = BASE_PATH / "data"
-TRAIN_PATH = DATA_PATH / "train.csv"
 
 
 @st.cache_data
-def load_data(nrows):
-    data = pd.read_csv(TRAIN_PATH, nrows=nrows, index_col="id")
+def load_data(dataset, nrows):
+    data = pd.read_csv(DATA_PATH / (dataset + ".csv"), nrows=nrows, index_col="id")
     return data
 
 
 @st.cache_data
-def load_graph(column):
-    df = pd.read_csv(TRAIN_PATH)
+def load_graph(dataset, column):
+    df = pd.read_csv(DATA_PATH / (dataset + ".csv"))
     df["date"] = pd.to_datetime(df['date'])
     
     grouped_data = df.groupby(['date', column])['num_sold'].sum().reset_index()
