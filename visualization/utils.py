@@ -9,12 +9,6 @@ DATA_PATH = BASE_PATH / "data"
 
 
 @st.cache_data
-def load_data(dataset, nrows):
-    data = pd.read_csv(DATA_PATH / (dataset + ".csv"), nrows=nrows, index_col="id")
-    return data
-
-
-@st.cache_data
 def load_graph(dataset, column):
     df = pd.read_csv(DATA_PATH / (dataset + ".csv"))
     df["date"] = pd.to_datetime(df['date'])
